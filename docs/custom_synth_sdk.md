@@ -77,14 +77,14 @@ Supporting public headers in [`synth/include/PolySynth/`](../synth/include/PolyS
 
 ## 3. Voice Lifecycle & Audio Rendering Model
 
-The Tracker audio engine supports **3 active synth slots** (`SYN 1`, `SYN 2`, `SYN 3`) with up to **8 voices total** allocated dynamically across those 3 slots.
+The Tracker audio engine supports **3 active synth slots** (`SYN 1`, `SYN 2`, `SYN 3`). There is no firmware-wide voice cap: each engine declares its own per-slot polyphony via `Patch::Metadata::maxVoices` (default `std::numeric_limits<int>::max()` in [`Patch.h`](../synth/include/PolySynth/Patch.h)), and the reference `CHIP` engine uses up to **8 voices per slot**.
 
 ### How Voices Are Allocated and Called
 
 1. **Engine Selection**:
    When a user selects your synth engine on `SYN 1`–`SYN 3` (or loads a project/patch using it), `PolySynth`:
    - Calls your static `createMetadata(const Patch&, Patch::Metadata&)` function once to build the parameter table, UI layout, and default macros.
-   - Calls your `createVoice()` factory up to `metadata.maxVoices` times (up to 8 voices) to instantiate your `CustomSynthVoice` subclass on the heap.
+   - Calls your `createVoice()` factory up to `metadata.maxVoices` times (e.g. up to 8 voices for `CHIP`) to instantiate your `CustomSynthVoice` subclass on the heap.
    - Sends initial `onParamChange(paramId, defaultValue)` calls for every parameter so your voice state is synchronized with the patch.
 
 2. **Parameter & Macro Updates (`onParamChange`)**:
@@ -666,9 +666,9 @@ To expose the new engine in the Tracker's Synth model selector and Patch Editor:
 
 2. **Create or Reuse Badge Bitmaps (`L2` 2-bit Grayscale Format)**:
    Each synth uses two small `L2` (2 bits per pixel, 4-level grayscale, MSB-first packed) bitmaps in `core/libs/images/`:
-   - **Mini Badge (`80x28` pixels, `560` bytes, stride `20`)**: Displayed in the Instrument Parameter screen (`SynthEditor`). See [`chip_mini_nomark_80x28_L2.h`](../core/libs/images/chip_mini_nomark_80x28_L2.h).
+   - **Mini Badge (`80x28` pixels, `560` bytes, stride `20`; factory engines use `80x29`, `580` bytes)**: Displayed in the Instrument Parameter screen (`SynthEditor`). See [`chip_mini_nomark_80x28_L2.h`](../core/libs/images/chip_mini_nomark_80x28_L2.h).
    - **Medium Badge (`108x40` pixels, `1080` bytes, stride `27`)**: Displayed in the Patch Editor (`SynthPatchEditor`). See [`chip_med_108x40_L2.h`](../core/libs/images/chip_med_108x40_L2.h).
-   - Register the bitmap enum IDs in [`core/libs/NewDisplay/displayStructs.h`](../core/libs/NewDisplay/displayStructs.h#L51-L85) (`enDisplayBitmaps`) and add their FT812 `RAM_G` entries in [`core/libs/NewDisplay/display.cpp`](../core/libs/NewDisplay/display.cpp#L172-L211) (`bitmaps[]`).
+   - Register the bitmap enum IDs in [`core/libs/NewDisplay/displayStructs.h`](../core/libs/NewDisplay/displayStructs.h#L31-L86) (`enDisplayBitmaps`) and add their FT812 `RAM_G` entries in [`core/libs/NewDisplay/display.cpp`](../core/libs/NewDisplay/display.cpp#L172-L211) (`bitmaps[]`).
 
 3. **Add Name & Bitmap Entries to the Synth Editors**:
    - In [`core/interface/instrumentEditor/SynthEditor.cpp`](../core/interface/instrumentEditor/SynthEditor.cpp#L24-L33):
@@ -804,5 +804,5 @@ For a full-featured production example built exclusively with `PolySynth/sdk/Syn
   6. `Zap / Laser` (Arcade pitch-drop percussion/lead)
   7. `Arp Chord` (4-step 50/60 Hz chiptune chord arpeggiator with 7 chord tables)
   8. `Chip Drum` (Stepped triangle pitch sweep + LFSR noise burst morphing from Kick to Snare to Hat)
-- **Dynamic Voice Allocation**: Switching `Play Mode` (`Mono` / `Legato` / `Poly`) uses `.invalidatesOtherMetadata = true` to dynamically switch `metadata.maxVoices` between `1` and `8`.
+- **Dynamic Voice Allocation**: The `Play Mode` (`Mono` / `Legato` / `Poly`) parameter sets `.invalidatesOtherMetadata = true`, so changing it re-runs `createMetadata()`, which sets `metadata.maxVoices` to `1` or `8` from the parameter value.
 - **5 Patch Editor Sections** (`Oscillator`, `Modulation`, `Amplifier`, `Filter`, `Voice`) and **6 Pre-Mapped Performance Macros** (`Timbre / PWM`, `Arp / Chord`, `Sweep / Vibrato`, `Env Decay / Rel`, `Crush / Lo-Fi`, `Filter Cutoff`).

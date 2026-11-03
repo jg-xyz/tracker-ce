@@ -33,7 +33,7 @@ When extending the **Polyend Tracker Community Edition (CE)** firmware, adding n
 
 By default, `SAMPLE_MEMORY_SIZE` in [`core/source/mtStructs.h`](../core/source/mtStructs.h) is left at its **full initial factory allocation** so nothing is restricted out of the box:
 * **Original Tracker (`MK66`)**: `SAMPLE_MEMORY_SIZE = 45 * 256 * 1024` (`11.25 MB`, comprising a `7.5 MB` resident mono sample pool plus `3.75 MB` `EDIT_BUFF_SIZE` reserved at the top for offline Sample Editor effects).
-* **Tracker+ & Tracker Mini (`IMX`)**: `SAMPLE_MEMORY_SIZE = 60 * 1024 * 1024` (`60 MB`, comprising a `45 MB` resident stereo sample pool plus `15 MB` `2 * SAMPLE_CHANNELS * EDIT_BUFF_SIZE` reserved at the top for offline Sample Editor effects).
+* **Tracker+ & Tracker Mini (`IMX`)**: `SAMPLE_MEMORY_SIZE = ((60 * 1024 - 64) * 1024)` (`~60 MB` minus `64 KB` reserved for pattern buffers, i.e. `61,376 KB`, comprising a `45 MB` resident stereo sample pool plus `15 MB` `2 * SAMPLE_CHANNELS * EDIT_BUFF_SIZE` reserved at the top for offline Sample Editor effects).
 
 However, because **Hybrid SD Card Sample Streaming** ([`core/AudioEngine/VoiceStreamManager.cpp`](../core/AudioEngine/VoiceStreamManager.cpp)) streams samples `>= 256 KB` (`kStreamThresholdBytes`) directly from the SD card while only allocating a **`32,768`-frame (`64 KB` per channel) pre-cache** in `externalRamSampleMemory`:
 * **Future developers can chip away at `SAMPLE_MEMORY_SIZE` whenever a new feature requires additional `EXTERNAL_RAM`**, simply by lowering `SAMPLE_MEMORY_SIZE` in [`core/source/mtStructs.h`](../core/source/mtStructs.h):

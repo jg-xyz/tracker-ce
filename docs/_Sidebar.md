@@ -1,7 +1,7 @@
 ### Polyend Tracker CE
 
 * **[Home](Home)**
-* **[Changelog](CHANGELOG)**
+* **[Changelog](https://github.com/polyend/tracker-ce/blob/main/CHANGELOG.md)**
 
 #### User Guides
 * **[Custom Themes & Fonts](custom_themes_and_fonts)**
