@@ -1002,7 +1002,14 @@ void cProjectEditor::functShowOverwriteWindow()
 
 static void functKeyboardAutoName()
 {
-    PE->keyboardManager.setRandomName();
+    if (PE->buttons->isButtonPressed(interfaceButtonShift))
+    {
+        PE->keyboardManager.setPreviousRandomName();
+    }
+    else
+    {
+        PE->keyboardManager.setRandomName();
+    }
 }
 
 //===============================================================================================================
