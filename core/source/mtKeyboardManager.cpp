@@ -60,21 +60,72 @@ void mtKeyboardManager::activateKeyboard(int nameLengthLimit)
 void mtKeyboardManager::deactivateKeyboard()
 {
     keyboardActiveFlag = 0;
+    clearRandomNameHistory();
     hideKeyboard();
     hideEditName();
 }
 
-void mtKeyboardManager::setRandomName()
+void mtKeyboardManager::applyAutoName(const char* txt)
 {
     editNameData.selectionWidth = 0;
     editNameData.selectionStart = 0;
-    strcpy(name, randomNameGenerator.getRandomName(timer));
+    strncpy(name, txt, MAX_NAME_LENGTH - 1);
+    name[MAX_NAME_LENGTH - 1] = 0;
     if (nameLengthLimit < MAX_NAME_LENGTH)
     {
         name[nameLengthLimit] = 0;
     }
     editPosition = strlen(name);
     showKeyboardEditName();
+}
+
+void mtKeyboardManager::setRandomName()
+{
+    applyAutoName(randomNameGenerator.getRandomName(timer));
+    pushRandomNameHistory(name);
+}
+
+void mtKeyboardManager::setPreviousRandomName()
+{
+    if (randomNameHistoryCursor == 0 || randomNameHistoryCount == 0)
+    {
+        return; // already at the oldest (or nothing generated yet)
+    }
+
+    randomNameHistoryCursor--;
+    applyAutoName(getRandomNameHistoryEntry(randomNameHistoryCursor));
+}
+
+void mtKeyboardManager::clearRandomNameHistory()
+{
+    randomNameHistoryHead = 0;
+    randomNameHistoryCount = 0;
+    randomNameHistoryCursor = 0;
+}
+
+const char* mtKeyboardManager::getRandomNameHistoryEntry(uint8_t logicalIndex) const
+{
+    return randomNameHistory[(randomNameHistoryHead + logicalIndex) % RANDOM_NAME_HISTORY_SIZE];
+}
+
+void mtKeyboardManager::pushRandomNameHistory(const char* txt)
+{
+    uint8_t slot;
+    if (randomNameHistoryCount < RANDOM_NAME_HISTORY_SIZE)
+    {
+        slot = (randomNameHistoryHead + randomNameHistoryCount) % RANDOM_NAME_HISTORY_SIZE;
+        randomNameHistoryCount++;
+    }
+    else
+    {
+        // full: overwrite the oldest entry
+        slot = randomNameHistoryHead;
+        randomNameHistoryHead = (randomNameHistoryHead + 1) % RANDOM_NAME_HISTORY_SIZE;
+    }
+
+    strncpy(randomNameHistory[slot], txt, MAX_NAME_LENGTH - 1);
+    randomNameHistory[slot][MAX_NAME_LENGTH - 1] = 0;
+    randomNameHistoryCursor = randomNameHistoryCount - 1;
 }
 
 char* mtKeyboardManager::getName()

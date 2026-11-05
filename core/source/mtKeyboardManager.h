@@ -69,6 +69,9 @@ constexpr uint8_t J_PAD = 30;
 
 constexpr uint8_t MAX_NAME_LENGTH = 33;
 
+// number of auto-generated names remembered for Shift+Auto Name cycling
+constexpr uint8_t RANDOM_NAME_HISTORY_SIZE = 10;
+
 class Leds;
 class Timer;
 class mtKeyboardManager
@@ -86,6 +89,9 @@ class mtKeyboardManager
     void deactivateKeyboard();
 
     void setRandomName();
+    // steps back through previously generated names (stops at the oldest)
+    void setPreviousRandomName();
+    void clearRandomNameHistory();
     void confirmKey();
     void makeBackspace();
     void makeMove(char c); // steruje się - w s a d
@@ -99,6 +105,9 @@ class mtKeyboardManager
     void showKeyboardEditName();
     void hideEditName();
     void editSelectedText();
+    void applyAutoName(const char* txt);
+    void pushRandomNameHistory(const char* txt);
+    const char* getRandomNameHistoryEntry(uint8_t logicalIndex) const;
 
     hControl keyboardControl = -1;
     hControl editName = -1;
@@ -114,6 +123,12 @@ class mtKeyboardManager
     uint8_t nameLengthLimit;
 
     char name[MAX_NAME_LENGTH];
+
+    // rolling window of auto-generated names; logical index 0 = oldest
+    char randomNameHistory[RANDOM_NAME_HISTORY_SIZE][MAX_NAME_LENGTH];
+    uint8_t randomNameHistoryHead = 0; // physical index of the oldest entry
+    uint8_t randomNameHistoryCount = 0;
+    uint8_t randomNameHistoryCursor = 0; // logical index of the name currently shown
     Leds* leds;
     Timer* timer;
 };
