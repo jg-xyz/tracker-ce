@@ -1,0 +1,123 @@
+# Tracker CE development tasks
+# Usage: mise run <task>   (or: mise tasks  to list)
+
+[tools]
+python = "3"
+
+[env]
+NPROC = "{{ env.NPROC | default(value='4') }}"
+
+# ---------- setup ----------
+
+[tasks.setup]
+description = "Install GNU Arm Embedded Toolchain 10.3-2021.10 into agt/10.3 (idempotent)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+if [ -x agt/10.3/bin/arm-none-eabi-gcc ]; then
+  echo "Toolchain already installed at agt/10.3"
+  exit 0
+fi
+echo "Downloading GNU Arm Embedded Toolchain 10.3-2021.10..."
+mkdir -p agt/10.3
+tmp=$(mktemp)
+wget -q -O "$tmp" https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
+tar -xjf "$tmp" -C agt/10.3 --strip-components=1
+rm -f "$tmp"
+agt/10.3/bin/arm-none-eabi-gcc --version | head -1
+"""
+
+# ---------- build ----------
+
+[tasks.build]
+description = "Build all three firmware images (Original, Tracker+, Mini)"
+depends = ["setup"]
+run = "make all"
+
+[tasks."build:original"]
+description = "Build Original Tracker (MK66) firmware"
+depends = ["setup"]
+run = "make original"
+
+[tasks."build:plus"]
+description = "Build Tracker+ (IMX) firmware"
+depends = ["setup"]
+run = "make plus"
+
+[tasks."build:mini"]
+description = "Build Tracker Mini (IMX) firmware"
+depends = ["setup"]
+run = "make mini"
+
+[tasks."build:ptfx"]
+description = "Build reference .ptfx Sample Editor plugins"
+depends = ["setup"]
+run = "make ptfx"
+
+[tasks.version]
+description = "Show firmware versions, build tag, and output filenames"
+run = "make version"
+
+# ---------- clean ----------
+
+[tasks.clean]
+description = "Remove all build outputs (firmware, objects, .ptfx binaries)"
+run = "make clean"
+
+# ---------- test ----------
+
+[tasks.test]
+description = "Host-side checks: OKF frontmatter conformance and docs/wiki link validation"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "== OKF knowledge bundle conformance =="
+fail=0
+while IFS= read -r file; do
+  [ "$(sed -n '1p' "$file")" = '---' ] || { echo "missing opening frontmatter: $file"; fail=1; continue; }
+  sed -n '2,/^---$/p' "$file" | grep -Eq '^type: .+' || { echo "missing type: $file"; fail=1; }
+done < <(find knowledge -type f -name '*.md' ! -name index.md ! -name log.md)
+grep -Eq '^okf_version: "0\\.2"$' knowledge/index.md || { echo "missing okf_version in knowledge/index.md"; fail=1; }
+[ "$fail" -eq 0 ] && echo "OKF bundle OK"
+
+echo "== Relative link validation (docs/, knowledge/) =="
+python3 - <<'PY'
+from pathlib import Path
+import re
+broken = []
+for base in ('docs', 'knowledge'):
+    for path in Path(base).rglob('*.md'):
+        text = path.read_text()
+        for m in re.finditer(r'\\]\\(([^)\\s]+)\\)', text):
+            link = m.group(1).split('#')[0]
+            if not link or '://' in link or link.startswith('mailto:'):
+                continue
+            target = (path.parent / link).resolve()
+            if not target.exists():
+                # Wiki-style page links (no .md) resolve to same-dir .md files
+                if not link.endswith('.md') and (path.parent / (link + '.md')).resolve().exists():
+                    continue
+                broken.append(f'{path} -> {link}')
+if broken:
+    raise SystemExit('Broken links:\\n' + '\\n'.join(broken))
+print('All relative links resolve.')
+PY
+"""
+
+# ---------- ci ----------
+
+[tasks.ci]
+description = "Mirror GitHub Actions build pipeline: version, firmware, plugins, tests"
+depends = ["setup"]
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+make version
+make all 2>&1 | tee build_output.log
+make ptfx
+mise run test
+echo "== Firmware artifacts =="
+ls -lh build/*.ptf
+ls -lh editor-fx-sdk/build/Effects/*.ptfx
+"""
