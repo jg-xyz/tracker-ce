@@ -39,8 +39,8 @@ This guide covers everything needed to use, author, compile, and understand cust
 
 The **Modular Effects System (`PTFX`)** introduces dynamically loadable DSP and synthesis plugins for the Polyend Tracker family across all three hardware platforms:
 - **Original Polyend Tracker** - NXP Kinetis MK66 (`ARM Cortex-M4F` @ 180 MHz, mono sample engine)
-- **Polyend Tracker+** - NXP i.MX RT1051/RT1064 (`ARM Cortex-M7F` @ 600 MHz, stereo sample engine)
-- **Polyend Tracker Mini** - NXP i.MX RT1051/RT1064 (`ARM Cortex-M7F` @ 600 MHz, stereo sample engine)
+- **Polyend Tracker+** - NXP i.MX RT1051 (`ARM Cortex-M7F` @ 528 MHz, stereo sample engine)
+- **Polyend Tracker Mini** - NXP i.MX RT1051 (`ARM Cortex-M7F` @ 528 MHz, stereo sample engine)
 
 External `.ptfx` position-independent binary modules placed on the SD card under `/Effects/*.ptfx` are automatically discovered when entering the **Sample Editor**, appended to the built-in effect list (up to **128 custom plugins** alongside the 17 built-in effects), loaded on demand into executable RAM, auditioned via **Preview**, and applied to existing samples or used to generate new samples/wavetables onto empty or active instrument slots.
 
@@ -467,7 +467,7 @@ flowchart TD
 
 | Resource / Limit | Original Tracker (`MK66`) | Tracker+ & Tracker Mini (`IMX`) |
 | :--- | :--- | :--- |
-| **MCU & Core** | NXP MK66FX1M0 (`Cortex-M4F` @ 180 MHz) | NXP i.MX RT1051/RT1064 (`Cortex-M7F` @ 600 MHz) |
+| **MCU & Core** | NXP MK66FX1M0 (`Cortex-M4F` @ 180 MHz) | NXP i.MX RT1051 (`Cortex-M7F` @ 528 MHz) |
 | **Max Discovered Plugins** | `128` `.ptfx` files in `/Effects/` | `128` `.ptfx` files in `/Effects/` |
 | **Max Parameters per Plugin** | `12` (`3` pages of `4`) | `12` (`3` pages of `4`) |
 | **Executable Code + BSS Limit** | `32,768 B` (`32 KB` at base of `externalRamScratchBuff`) | `131,072 B` (`128 KB` at base of `externalRamScratchBuff`, `0x80000000`) |
@@ -482,7 +482,7 @@ flowchart TD
 
 ### 9.3 Cortex-M7 L1 Cache Coherency & FatFs Loading (`PLATFORM_IMX`)
 
-On the i.MX RT1051/RT1064 (`Cortex-M7`), `0x80000000` (`EXTERNAL_RAM`) is configured in the MPU as Write-Back, Write-Allocate cached memory (`DisableExec = 0`), with separate L1 Data Cache (`D-Cache`) and L1 Instruction Cache (`I-Cache`):
+On the i.MX RT1051 (`Cortex-M7`), `0x80000000` (`EXTERNAL_RAM`) is configured in the MPU as Write-Back, Write-Allocate cached memory (`DisableExec = 0`), with separate L1 Data Cache (`D-Cache`) and L1 Instruction Cache (`I-Cache`):
 1. **Chunked File Reads (`<= 256` bytes)**:
    - Because `sizeof(PtfxHeader)` is `472` bytes (not a multiple of the 512-byte SD sector size), [`PtfxLoader::loadPlugin()`](../core/effector/ptfx_loader.cpp) reads the code payload in `256`-byte chunks (`chunk <= 256`), guaranteeing that FatFs (`cc = btr / 512 == 0`) always reads SD sectors through its aligned internal DTCM bounce buffer (`fp->buf`).
 2. **Cortex-M7 SCB Cache Maintenance**:

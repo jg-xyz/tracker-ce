@@ -6,7 +6,7 @@ Built directly from the original Polyend firmware source code, Tracker CE opens 
 
 This unified codebase powers all three hardware instruments in the Tracker family:
 * **Original Polyend Tracker** (`NXP Kinetis MK66FX1M0`, Cortex-M4F @ 180 MHz)
-* **Polyend Tracker+ & Tracker Mini** (`NXP i.MX RT1051/RT1064`, Cortex-M7 @ 600 MHz)
+* **Polyend Tracker+ & Tracker Mini** (`NXP i.MX RT1051`, Cortex-M7 @ 528 MHz)
 
 ### What's New:
 See [`CHANGELOG.md`](CHANGELOG.md) for the full list of new features and improvements.

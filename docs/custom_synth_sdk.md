@@ -1,6 +1,6 @@
 # Polyend Tracker Custom Synth Engine SDK - Developer Guide
 
-The **Polyend Tracker Custom Synth Engine SDK** ([`synth/include/PolySynth/sdk/`](../synth/include/PolySynth/sdk/)) lets developers create, register, and customize polyphonic real-time synthesizer engines on **Polyend Tracker+** and **Polyend Tracker Mini** (`NXP i.MX RT1064`, ARM Cortex-M7 @ 600 MHz) without requiring the proprietary `PolyDSP` source code.
+The **Polyend Tracker Custom Synth Engine SDK** ([`synth/include/PolySynth/sdk/`](../synth/include/PolySynth/sdk/)) lets developers create, register, and customize polyphonic real-time synthesizer engines on **Polyend Tracker+** and **Polyend Tracker Mini** (`NXP i.MX RT1051`, ARM Cortex-M7 @ 528 MHz) without requiring the proprietary `PolyDSP` source code.
 
 ---
 
@@ -779,7 +779,7 @@ The Tracker Patch Editor displays a **2x6 grid of tiles**: the **top 6 tiles** r
 3. **Keep `minValue` / `maxValue` Within `__fp16` Range**:
    On ARM targets, `Patch::Metadata::Param::minValue` and `maxValue` are stored as 16-bit half-precision floats (`__fp16`, max magnitude `65504.0f`). Never use `FLT_MAX` or values above `65500.0f` for parameter bounds.
 
-4. **CPU Budget (`600 MHz` Cortex-M7 with Hardware Single-Precision FPU)**:
+4. **CPU Budget (`528 MHz` Cortex-M7 with Hardware Single-Precision FPU)**:
    - Use `float` (`0.0f`, `std::sinf`, `std::powf`, `std::fabsf`) everywhere, never `double`.
    - Hoist per-block coefficient calculations (such as filter coefficients, envelope increments, and `noteToFreq` base pitch when not pitch-modulated at audio rate) outside the `128`-sample `for (auto& sample : out)` loop whenever possible.
    - Use `PolyBLEP` or band-limiting on sharp discontinuities (saw/pulse resets) to keep high notes alias-free at `44.1 kHz`.

@@ -1,6 +1,6 @@
 # Ideas to investigate
 
-Unscoped notes, not commitments. Source pointers are starting points from a quick
+Unscoped notes, not commitments. CPU/audio hardware background: [research_tracker_plus_cpu](research_tracker_plus_cpu.md). Source pointers are starting points from a quick
 directory listing, not verified findings.
 
 ## 1. Song/pattern playback during recording
