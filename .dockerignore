@@ -1,0 +1,6 @@
+.git
+build
+agt
+editor-fx-sdk/build
+core/build-*
+platforms/*/build*

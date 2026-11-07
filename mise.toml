@@ -105,6 +105,34 @@ print('All relative links resolve.')
 PY
 """
 
+# ---------- container ----------
+
+[tasks."container:build"]
+description = "Build the tracker-ce-build container image (Docker or Podman)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+engine=$(command -v docker || command -v podman)
+"$engine" build -t tracker-ce-build .
+"""
+
+[tasks."ci:container"]
+description = "Run the full CI pipeline inside the build container"
+depends = ["container:build"]
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+engine=$(command -v docker || command -v podman)
+"$engine" run --rm -v "$PWD:/src" tracker-ce-build bash -c '
+  set -euo pipefail
+  make version
+  make clean
+  make all
+  make ptfx
+  ls -lh build/*.ptf editor-fx-sdk/build/Effects/*.ptfx
+'
+"""
+
 # ---------- ci ----------
 
 [tasks.ci]
