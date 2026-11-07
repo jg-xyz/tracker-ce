@@ -105,6 +105,30 @@ print('All relative links resolve.')
 PY
 """
 
+[tasks."test:usb-ring"]
+description = "Host sim of the Tracker+ USB playback ring arithmetic (mirrors platforms/imx/usb/audio_unified.c; exits 1 on any sample mismatch)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+out=$(mktemp -d)
+cc -O1 -Wall -o "$out/usb_play_ring_sim" util/host-tests/usb_play_ring_sim.c
+"$out/usb_play_ring_sim"
+"""
+
+[tasks."test:usb-iso"]
+description = "Tracker+ userspace isochronous playback test via usbfs (bypasses snd-usb-audio; needs sudo + attached device)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+out=$(mktemp -d)
+cc -O2 -Wall -o "$out/usb_iso_playback_test" util/host-tests/usb_iso_playback_test.c -lm
+sudo "$out/usb_iso_playback_test" "$@" 2>&1
+"""
+
+[tasks."usb:settings"]
+description = "Tracker+ host USB-audio fix: apply|persist|revert|status [--dry-run] (snd-usb-audio implicit_fb=1; uses sudo)"
+run = "util/host-tests/tracker_usb_audio_settings.sh"
+
 # ---------- container ----------
 
 [tasks."container:build"]
