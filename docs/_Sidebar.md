@@ -7,6 +7,7 @@
 * **[Custom Themes & Fonts](custom_themes_and_fonts)**
 * **[Wavetable Envelopes & LFOs](wavetable_envelopes)**
 * **[SD Card Image Viewer](image_viewer)**
+* **[Mark for Deletion (Sample Loader)](sample_loader_mark_for_deletion)**
 * **[Modular Effects (.ptfx)](modular_effects_system)**
 
 #### Developer & SDK Guides
