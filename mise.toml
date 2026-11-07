@@ -82,6 +82,10 @@ run = "make clean"
 description = "Host test of the Sample Loader mark-for-deletion path/duplicate logic (extracted from firmware source)"
 run = "util/host-tests/mark_for_deletion_test.sh"
 
+[tasks."test:autoname-history"]
+description = "Host test of the Shift+Auto Name history ring (extracted from mtKeyboardManager.cpp)"
+run = "util/host-tests/autoname_history_test.sh"
+
 [tasks.test]
 description = "Host-side checks: OKF frontmatter conformance and docs/wiki link validation"
 run = """
