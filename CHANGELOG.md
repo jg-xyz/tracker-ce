@@ -4,6 +4,32 @@ All notable changes to the **Polyend Tracker Community Edition (CE)** firmware a
 
 ---
 
+## [Unreleased] - jg fork (shows as `1.0.0 jg`)
+
+### Added
+
+1. **Sample Loader: "Mark for deletion" (all devices)**
+   * Button 7 appends the item under the SD-explorer cursor (file or folder) to `MARKED_FOR_DELETION.txt` at the SD root, one SD-relative path per line (folders end in `/`). Skips duplicates; the Tracker deletes nothing. The `%` memory readout that shared the button label was removed (the memory bar remains).
+   * See [`docs/sample_loader_mark_for_deletion.md`](docs/sample_loader_mark_for_deletion.md).
+
+2. **Shift + Auto Name steps back through earlier generated names (Project Editor: Save As / New Folder)**
+   * The keyboard remembers the last 10 auto-generated names; hold Shift and press Auto Name to step back (stops at the oldest). History clears when the keyboard closes.
+
+3. **Version tooling**
+   * `mise run version:bump:patch|minor|major` bumps all three devices in `version.mk`; the Config > Firmware > Build field shows the commit hash with `-dirty` for uncommitted builds.
+
+### Changed & Fixed
+
+1. Edition label in the firmware window is `jg` instead of `CE` (`.ptf` files are now `*_jg_1.0.0.ptf`).
+2. Docs and README state the correct CPU: NXP i.MX RT1051 at 528 MHz (previously "RT1051/RT1064 @ 600 MHz"). See [`docs/research_tracker_plus_cpu.md`](docs/research_tracker_plus_cpu.md).
+3. `make bump-patch` / `bump-minor` no longer fail with a Python syntax error; added `bump-major`.
+
+### Documentation
+
+* Research notes (not shipped features): [record with playback](docs/research_record_with_playback.md), [punch-in recording](docs/research_punch_in_recording.md), [Tracker+ USB audio on Linux](docs/tracker-plus-usb-audio-garbling.md).
+
+---
+
 ## [1.0.0] - Initial Community Edition Release
 
 > **⚠️ Important :: Project Compatibility Notice:**
