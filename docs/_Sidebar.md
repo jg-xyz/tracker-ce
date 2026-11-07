@@ -19,6 +19,7 @@
 * **[Record with Playback](research_record_with_playback)**
 * **[Punch-In Recording](research_punch_in_recording)**
 * **[Mark for Deletion](research_mark_for_deletion)**
+* **[Tracker+ CPU](research_tracker_plus_cpu)**
 * **[Tracker+ USB Audio on Linux](tracker-plus-usb-audio-garbling)**
 
 #### Ecosystem
