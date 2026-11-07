@@ -58,6 +58,18 @@ run = "make ptfx"
 description = "Show firmware versions, build tag, and output filenames"
 run = "make version"
 
+[tasks."version:bump:patch"]
+description = "Bump the patch version (x.y.Z) for ALL targets (Original, Tracker+, Mini) in version.mk"
+run = "make bump-patch TARGET=ALL && make version"
+
+[tasks."version:bump:minor"]
+description = "Bump the minor version (x.Y.0) for ALL targets, resetting patch"
+run = "make bump-minor TARGET=ALL && make version"
+
+[tasks."version:bump:major"]
+description = "Bump the major version (X.0.0) for ALL targets, resetting minor and patch"
+run = "make bump-major TARGET=ALL && make version"
+
 # ---------- clean ----------
 
 [tasks.clean]

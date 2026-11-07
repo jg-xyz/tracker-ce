@@ -23,7 +23,7 @@ MINI_POSTFIX     := $(EDITION_NAME)_$(MINI_VER_MAJOR).$(MINI_VER_MINOR).$(MINI_V
 
 .DEFAULT_GOAL := all
 
-.PHONY: all original plus mini ptfx clean version bump-patch bump-minor
+.PHONY: all original plus mini ptfx clean version bump-patch bump-minor bump-major
 
 all: original plus mini
 
@@ -113,25 +113,7 @@ version:
 	@echo "Tracker+ (IMX) : $(EDITION_NAME) $(PLUS_VER_MAJOR).$(PLUS_VER_MINOR).$(PLUS_VER_PATCH) -> TrackerPlus_$(PLUS_POSTFIX).ptf"
 	@echo "Mini     (IMX) : $(EDITION_NAME) $(MINI_VER_MAJOR).$(MINI_VER_MINOR).$(MINI_VER_PATCH) -> TrackerMini_$(MINI_POSTFIX).ptf"
 
-TARGET ?= all
+TARGET ?= ALL
 
-bump-patch:
-	@python3 -c 'import re, sys; t="$(TARGET)".upper(); p="version.mk"; s=open(p).read(); \
-	targets = ["ORIGINAL", "PLUS", "MINI"] if t == "ALL" else [t]; \
-	for k in targets: \
-	    m = re.search(rf"{k}_VER_PATCH\s*:=\s*(\d+)", s); \
-	    assert m, f"Unknown TARGET {t}"; \
-	    v = int(m.group(1)) + 1; \
-	    s = re.sub(rf"{k}_VER_PATCH\s*:=\s*\d+", f"{k}_VER_PATCH := {v}", s); \
-	open(p, "w").write(s); print(f"Bumped patch version for {targets}")'
-
-bump-minor:
-	@python3 -c 'import re, sys; t="$(TARGET)".upper(); p="version.mk"; s=open(p).read(); \
-	targets = ["ORIGINAL", "PLUS", "MINI"] if t == "ALL" else [t]; \
-	for k in targets: \
-	    m = re.search(rf"{k}_VER_MINOR\s*:=\s*(\d+)", s); \
-	    assert m, f"Unknown TARGET {t}"; \
-	    v = int(m.group(1)) + 1; \
-	    s = re.sub(rf"{k}_VER_MINOR\s*:=\s*\d+", f"{k}_VER_MINOR := {v}", s); \
-	    s = re.sub(rf"{k}_VER_PATCH\s*:=\s*\d+", f"{k}_VER_PATCH := 0", s); \
-	open(p, "w").write(s); print(f"Bumped minor version for {targets} (patch reset to 0)")'
+bump-patch bump-minor bump-major: bump-%:
+	@python3 "$(ROOT_DIR)/util/bump_version.py" $* "$(TARGET)"

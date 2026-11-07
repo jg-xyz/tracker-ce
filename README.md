@@ -98,17 +98,19 @@ make clean
 ```
 
 ### 3. Version Management (`version.mk`)
-All firmware version numbers are defined in [`version.mk`](version.mk). The **Build** identifier displayed on the hardware under **Config > Firmware > Build** is automatically populated from the short Git commit hash (`git rev-parse --short=7 HEAD`):
+All firmware version numbers are defined in [`version.mk`](version.mk). The **Build** identifier displayed on the hardware under **Config > Firmware > Build** is the short Git commit hash (`git describe --always --dirty --abbrev=7`). A `-dirty` suffix means the build contains uncommitted changes to tracked files, so it does not match any commit; commit first to get a build you can trace. Filenames carry only the edition and version (`.ptf` names must stay at 31 characters or fewer), so rebuilds of the same version overwrite each other; use the Build field on the device to tell them apart.
 
 ```bash
 # Show current version, Git build hash & output filenames
-make version
+make version                     # or: mise run version
 
-# Increment patch version (e.g. 1.0.0 -> 1.0.1)
-make bump-patch TARGET=all        # or TARGET=original | TARGET=plus | TARGET=mini
+# Bump versions for ALL targets (Original, Tracker+, Mini) in version.mk
+mise run version:bump:patch      # 1.0.0 -> 1.0.1
+mise run version:bump:minor      # 1.0.x -> 1.1.0 (patch reset)
+mise run version:bump:major      # 1.x.y -> 2.0.0 (minor, patch reset)
 
-# Increment minor version (e.g. 1.0.x -> 1.1.0)
-make bump-minor TARGET=all        # or TARGET=original | TARGET=plus | TARGET=mini
+# Or a single target with make:
+make bump-patch TARGET=plus      # original | plus | mini | all (default)
 ```
 
 ### 4. Flashing on Hardware & Emergency Recovery

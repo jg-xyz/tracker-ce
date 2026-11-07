@@ -2,7 +2,10 @@
 
 EDITION_NAME := jg
 VER_ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-BUILD_TAG    ?= $(shell git -C "$(VER_ROOT_DIR)" rev-parse --short=7 HEAD 2>/dev/null || date +"%Y%m%d")
+# Short commit hash; "-dirty" is appended when tracked files have uncommitted changes, so a
+# build that does not match a commit is never mistaken for one. Shown in Config > build and
+# (filenames stay short: the bootloader needs .ptf names of 31 characters or fewer).
+BUILD_TAG    ?= $(shell git -C "$(VER_ROOT_DIR)" describe --always --dirty --abbrev=7 2>/dev/null || date +"%Y%m%d")
 
 # Original Tracker (MK66)
 ORIGINAL_VER_MAJOR := 1
