@@ -88,6 +88,35 @@ that needs more buffers (see [record with playback](research_record_with_playbac
 * Firmware is compiled `-mfpu=fpv5-sp-d16 -mfloat-abi=hard`: single-precision hardware
   instructions only, so any `double` math is software emulated.
 
+## Cores
+
+Single core. The datasheet says "single Arm Cortex-M7 MPCore"; there is no second core
+(unlike the i.MX RT1170, which pairs an M7 with an M4). The firmware, audio, UI, SD and
+USB all share it.
+
+## Audio capabilities (datasheet) and how the firmware uses them
+
+Datasheet (consumer Rev. 1.1; same peripheral list for the RT1050 family):
+* **3x SAI** (synchronous audio interface): I2S, AC97, TDM, codec/DSP interfaces, full
+  duplex with frame sync.
+* **1x S/PDIF** input and output.
+* **MQS**: 2-channel medium-quality PWM-like audio on two GPIO pads.
+* Audio/video PLL for audio clocks. No on-chip codec/ADC/DAC for audio and no hardware
+  mixer. (The listed "ASRC" and "PDM" features are not in this datasheet; a grep found
+  neither.)
+
+Firmware (`platforms/imx/`):
+* Audio runs on **SAI1** with EDMA, 16-bit words, 44.1 kHz class
+  (`board/peripherals.c`: `kSAI_SampleRate44100Hz`; SAI1 MCLK 11.2896 MHz from the audio
+  PLL; `3rdparty/Audio/output_i2s.cpp`, `input_i2s.cpp`).
+* An external **SGTL5000** codec (`source/Sgtl5000Impl.cpp`) does the DAC/ADC and
+  analog I/O.
+* The audio library processes in 128-sample blocks at `AUDIO_SAMPLE_RATE_EXACT`
+  44117.65 Hz (`core/libs/Audio/AudioStream.h`), i.e. the codec link is stereo 16-bit.
+  The 44098 Hz figure in the USB firmware is the USB-side nominal rate, a different
+  clock domain.
+* Not used by the firmware (per grep of `platforms/imx`): SAI2/SAI3, S/PDIF, MQS.
+
 ## Relevance
 
 * Audio and the 28-channel USB audio device share this one core with the UI and SD
