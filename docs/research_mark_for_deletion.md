@@ -7,7 +7,7 @@ reading the source; nothing was built or run on hardware.
 
 ## Implementation status
 
-Implemented on branch `feat/mark-for-deletion` (compiles for Tracker+; not run on hardware).
+Implemented on branch `feat/mark-for-deletion` (compiles for Tracker+; tested on a Tracker+).
 Button 7 in the Sample Loader (`functMarkForDeletion`, `fSampleImport.cpp`) appends
 `/Dir/Sub/File.wav` or `/Dir/Sub/Folder/` to `MARKED_FOR_DELETION.txt` at the SD root,
 skips duplicates, strips the paged `(a-b)` suffix, rejects `/..`. The label replaced

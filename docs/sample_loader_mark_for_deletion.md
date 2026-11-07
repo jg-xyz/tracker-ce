@@ -42,4 +42,4 @@ before removing it.
 * Developer notes: [research_mark_for_deletion](research_mark_for_deletion.md). Code:
   `functMarkForDeletion` in `core/interface/sampleImporter/fSampleImport.cpp`; host test:
   `mise run test:mark-for-deletion`.
-* Verified by build and host test only; not yet tried on hardware.
+* Verified on a Tracker+ (button, popups, file written).
