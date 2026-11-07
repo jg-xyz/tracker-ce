@@ -10,7 +10,7 @@
 //=====================================================================
 
 #ifndef FW_EDITION_NAME
-#define FW_EDITION_NAME "CE"
+#define FW_EDITION_NAME "jg"
 #endif
 #ifndef FW_VER_MAJOR
 #define FW_VER_MAJOR 1
