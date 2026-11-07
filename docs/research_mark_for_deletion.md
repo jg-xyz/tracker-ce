@@ -5,6 +5,15 @@ file or a directory) to a text file at the root of the SD card. The Tracker dele
 nothing; the list is for review and cleanup on a computer. Findings are from
 reading the source; nothing was built or run on hardware.
 
+## Implementation status
+
+Implemented on branch `feat/mark-for-deletion` (compiles for Tracker+; not run on hardware).
+Button 7 in the Sample Loader (`functMarkForDeletion`, `fSampleImport.cpp`) appends
+`/Dir/Sub/File.wav` or `/Dir/Sub/Folder/` to `MARKED_FOR_DELETION.txt` at the SD root,
+skips duplicates, strips the paged `(a-b)` suffix, rejects `/..`. The label replaced
+"Memory"; the `%` readout is gone (the memory bar remains). Multi-select, flagging in
+the list and un-mark are not done.
+
 ## Summary
 
 Feasible with small, well-contained changes. The browser already exposes everything

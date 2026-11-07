@@ -32,6 +32,7 @@ static void functPlayAction();
 static void functEnter();
 static void functRename();
 static void functDeleteUnused();
+static void functMarkForDeletion();
 static void functShift(uint8_t state);
 
 static void functInstrumentAdd();
@@ -70,6 +71,125 @@ static void functSwitchModule(uint8_t button);
 
 static void functConfirmRename();
 static void functCancelRename();
+// Appends the item under the explorer cursor to a text file at the SD root so it can be
+// reviewed and deleted on a computer. The Tracker itself deletes nothing.
+void parseFolderName(const char* input, char* name, uint16_t* offset); // fileManagerBrowse.cpp
+
+static constexpr const char* kMarkedFile = "MARKED_FOR_DELETION.txt";
+
+static bool markedFileContains(FileSystem* fs, const char* line)
+{
+    if (!fs->exists(kMarkedFile))
+    {
+        return false;
+    }
+
+    auto [isOpen, file] = fs->openFile(kMarkedFile, FileSystem::kRead, nullptr);
+    if (!isOpen)
+    {
+        return false;
+    }
+
+    bool found = false;
+    char cur[kMaxFilePathLen + 2];
+    size_t len = 0;
+    bool overflow = false;
+    char chunk[128];
+    size_t n;
+
+    while (!found && (n = fs->readFile(chunk, sizeof(chunk), file)) > 0)
+    {
+        for (size_t i = 0; i < n && !found; i++)
+        {
+            if (chunk[i] == '\n')
+            {
+                cur[len] = '\0';
+                found = !overflow && strcmp(cur, line) == 0;
+                len = 0;
+                overflow = false;
+            }
+            else if (len < sizeof(cur) - 1)
+            {
+                cur[len++] = chunk[i];
+            }
+            else
+            {
+                overflow = true;
+            }
+        }
+    }
+
+    fs->closeFile(file);
+    return found;
+}
+
+static void functMarkForDeletion()
+{
+    if (SI->selectedPlace != 0 || SI->explorerNames == nullptr)
+    {
+        return;
+    }
+
+    const char* item = SI->explorerNames[SI->selectedFile];
+    if (item == nullptr || strcmp(item, "/..") == 0)
+    {
+        return;
+    }
+
+    FileSystem* fs = newFileManager.getFileSystem();
+    if (fs == nullptr || !fs->isSdCardInserted())
+    {
+        mtPopups.show(0, "No SD card");
+        return;
+    }
+
+    SI->playFromPads(INTERFACE_BUTTON_PREVIEW, buttonRelease, -1);
+
+    // build SD-relative path: "/Dir/Sub/File.wav" or "/Dir/Sub/Folder/"
+    char line[kMaxFilePathLen + 2];
+    const char* dir = newFileManager.getExplorerPath();
+    bool isFolder = *item == '/';
+    char name[kMaxFilePathLen];
+
+    if (isFolder)
+    {
+        uint16_t offset;
+        parseFolderName(item + 1, name, &offset); // strip paged "(1-100)" suffix
+    }
+    else
+    {
+        strncpy(name, item, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0';
+    }
+
+    int written = snprintf(
+      line, sizeof(line), "%s%s%s%s", dir, strcmp(dir, "/") == 0 ? "" : "/", name, isFolder ? "/" : "");
+    if (written < 0 || written >= (int)sizeof(line) - 1)
+    {
+        mtPopups.show(0, "Path too long");
+        return;
+    }
+
+    if (markedFileContains(fs, line))
+    {
+        mtPopups.show(0, "Already marked");
+        return;
+    }
+
+    auto [isOpen, file] = fs->openFile(kMarkedFile, FileSystem::kWriteAppend, nullptr);
+    if (!isOpen)
+    {
+        mtPopups.show(0, "SD write error");
+        return;
+    }
+
+    line[written] = '\n';
+    size_t wrote = fs->writeFile(line, written + 1, file);
+    fs->closeFile(file);
+
+    mtPopups.show(0, wrote == (size_t)written + 1 ? "Marked for deletion" : "SD write error");
+}
+
 static void functAutoNameRename();
 
 static void functDeleteBackspace(uint8_t state);
@@ -359,6 +479,7 @@ void cSampleImporter::setDefaultScreenFunct()
     ip->setButtonObj(interfaceButton4, buttonPress, functInstrumentImport);
     ip->setButtonObj(interfaceButton5, buttonPress, functDeleteUnused);
     ip->setButtonObj(interfaceButton6, functSelectPreviewVolume);
+    ip->setButtonObj(interfaceButton7, buttonPress, functMarkForDeletion);
 
     // ip->setButtonObj(interfaceButton4, buttonPress, functChangeInstrument);
     // ip->setButtonObj(interfaceButton5, buttonPress, functInstrumentDelete);

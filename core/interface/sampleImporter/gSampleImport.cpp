@@ -159,7 +159,8 @@ void cSampleImporter::showDefaultScreen()
     display.setControlText(label[6], "Preview Vol");
     display.setControlText2(label[6], "");
 
-    display.setControlText(label[7], "Memory");
+    display.setControlText(label[7], "Mark for");
+    display.setControlText2(label[7], "deletion");
 
     display.setControlText2(label[0], "");
     display.setControlText2(label[1], "");
@@ -283,10 +284,6 @@ void cSampleImporter::showMemoryUsage()
         display.setControlData(memoryBarControl, &memoryUsageAdd);
         display.setControlShow(memoryBarControl);
         display.refreshControl(memoryBarControl);
-
-        sprintf(memoryUsageValue, "%d%c", memoryUsage, '%');
-        display.setControlText2(label[7], memoryUsageValue);
-        display.refreshControl(label[7]);
     }
     else
     {
@@ -296,9 +293,6 @@ void cSampleImporter::showMemoryUsage()
         display.setControlData(memoryBarControl, (strBarData*)&memoryUsageAddOnMemoryFull);
         display.setControlShow(memoryBarControl);
         display.refreshControl(memoryBarControl);
-
-        display.setControlText2(label[7], "100%");
-        display.refreshControl(label[7]);
     }
 }
 
