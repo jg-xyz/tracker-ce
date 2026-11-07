@@ -155,6 +155,10 @@ static void functMarkForDeletion()
     {
         uint16_t offset;
         parseFolderName(item + 1, name, &offset); // strip paged "(1-100)" suffix
+        for (size_t n = strlen(name); n > 0 && name[n - 1] == ' '; n--)
+        {
+            name[n - 1] = '\0';
+        }
     }
     else
     {
