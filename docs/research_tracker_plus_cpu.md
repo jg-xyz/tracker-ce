@@ -8,6 +8,13 @@ nxp.com's direct PDF URL returned 404 to a script). Caveat: that datasheet cover
 separate industrial datasheet (IMXRT1050IEC), which was not retrieved. Numbers cited
 as "datasheet" below are from the consumer document and may differ for the industrial one.
 
+The industrial datasheet could not be downloaded in full (nxp.com returns 404 to
+scripts). Only its first page, as text on a [Jiepei preview page](https://pdf.jiepei.com/mimxrt1052cvl5a-33412858.html),
+was read. It confirms: IMXRT1050IEC **Rev. 1, 03/2018** covers `MIMXRT1051CVL5B`
+(and 1051CVL5A, 1052CVL5A/B), 196-pin MAPBGA 10 x 10 mm 0.65 mm pitch, and says the
+Cortex-M7 "operates at speeds **up to 528 MHz**" with 512 KB on-chip RAM configurable as
+TCM or general-purpose. That settles the grade question below in favour of 528 MHz.
+
 ## Part
 
 | Item | Value | Source |
@@ -23,9 +30,11 @@ as "datasheet" below are from the consumer document and may differ for the indus
 `MIMXRT1051CVL5B` = **M** mass production, **RT** i.MX RT, **1** first-gen family,
 **05** RT1050 sub-family, **1** tier 1 = *reduced feature* (RT1052 is the full-feature
 tier), **C** industrial -40..+105 C, **VL** 196-pin MAPBGA 10 x 10 mm 0.65 mm pitch,
-**5** = **500 MHz** speed grade, **B** = silicon rev A1. So the `5` in the part is the
-500 MHz grade, not 600 (the `6` parts are the 600 MHz ones). The listings that say
-528 MHz match the datasheet's 528 MHz operating point below.
+**5** = speed grade, **B** = silicon rev A1. The consumer datasheet's nomenclature
+figure labels `5` as "500 MHz" and `6` as "600 MHz", but the industrial datasheet's
+first page says the `5` parts run up to **528 MHz** (the PLL-derived figure behind the
+nominal "500"). So the `5` grade is the 528 MHz grade, not 600; the `6` parts are the
+600 MHz ones.
 
 ## Datasheet facts
 
@@ -52,9 +61,7 @@ The firmware configures 528 MHz, the datasheet's standard run point
 
 600 MHz would be the datasheet's Overdrive point (higher `VDD_SOC_IN`, more heat) and
 is the `6` speed grade; this part is the `5` grade, so it is not a supported target.
-Also note the 528 MHz setting already sits above the nominal 500 MHz grade label; the
-datasheet's 528 MHz operating point suggests that is by design, but the industrial
-datasheet should be checked.
+The 528 MHz firmware setting matches the industrial datasheet's stated maximum.
 
 ## Memory map used by the firmware
 
@@ -92,7 +99,8 @@ that needs more buffers (see [record with playback](research_record_with_playbac
 
 ## Open items
 
-* Fetch the industrial datasheet (IMXRT1050IEC) and re-check Table 10 and the 500 MHz
-  grade vs 528 MHz firmware setting.
-* Rev. 1.1 (2018) is old; check for a newer revision and the errata.
+* Get the full industrial datasheet (IMXRT1050IEC, 93 pages in Rev. 1; later revisions
+  exist, up to Rev. 2 in 2021 per search results) and re-check Table 10 for the
+  industrial grade.
+* Check the errata.
 * Whether the M7 FPU is double-capable (reference manual / Arm M7 TRM).
