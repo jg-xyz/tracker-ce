@@ -5,6 +5,8 @@ directory listing, not verified findings.
 
 ## 1. Song/pattern playback during recording
 
+Research: [research_record_with_playback](research_record_with_playback.md)
+
 Allow the sequencer (song or pattern) to run while sampling, so a take can be
 recorded in time with the project.
 
@@ -22,6 +24,8 @@ Questions to answer:
 
 ## 2. Punch-in recording
 
+Research: [research_punch_in_recording](research_punch_in_recording.md)
+
 Start and stop recording at chosen points while the project plays, replacing or
 filling part of a sample (or recording a fresh one) in sync.
 
@@ -34,6 +38,8 @@ Questions to answer:
 * Depends on idea 1 (playback while recording).
 
 ## 3. Sample browser: "mark for deletion"
+
+Research: [research_mark_for_deletion](research_mark_for_deletion.md)
 
 In the sample browser (likely the `core/interface/sampleImporter/` UI) add a
 button, **Mark for deletion**, that appends the item under the cursor (a file or

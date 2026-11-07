@@ -14,6 +14,13 @@
 * **[Custom Synth Engine SDK](custom_synth_sdk)**
 * **[Modular Effects & PTFX SDK](modular_effects_system)**
 
+#### Research Notes
+* **[Ideas to Investigate](ideas)**
+* **[Record with Playback](research_record_with_playback)**
+* **[Punch-In Recording](research_punch_in_recording)**
+* **[Mark for Deletion](research_mark_for_deletion)**
+* **[Tracker+ USB Audio on Linux](tracker-plus-usb-audio-garbling)**
+
 #### Ecosystem
 * **[Web Theme & Font Editor](https://polyend.github.io/tracker-theme-editor/)**
 * **[tracker-theme-editor Repo](https://github.com/polyend/tracker-theme-editor)**
