@@ -16,6 +16,8 @@ When extending the **Polyend Tracker Community Edition (CE)** firmware, adding n
 
 ---
 
+> **CPU:** Tracker+ and Tracker Mini build for the NXP i.MX RT1051 (`MIMXRT1051CVL5B`), a single Cortex-M7 clocked at 528 MHz by `platforms/imx/board/clock_config.c`. Datasheet facts, memory map, audio hardware (SAI1 + SGTL5000) and open questions: [Tracker+ CPU research](research_tracker_plus_cpu.md).
+
 ## 1. Memory Budget & Free Headroom
 
 | Platform & Memory Region | Total Capacity | Current Usage | Immediately Free | Theoretically Reclaimable | What Lives Here & Developer Notes |
@@ -85,7 +87,7 @@ To avoid copying 13–45 MB of PCM sample payloads from `/Projects/<Path>/<Name>
    * **Zero-Latency Trigger & Background Ring Buffers**: When a note is triggered, the audio ISR (`AudioPlayMemory::update()` in [`core/libs/Audio/play_memory.cpp`](../core/libs/Audio/play_memory.cpp)) immediately plays from the SDRAM pre-cache while `VoiceStreamManager::update()` ([`core/AudioEngine/VoiceStreamManager.cpp`](../core/AudioEngine/VoiceStreamManager.cpp)) refills the active voice's **`16,384`-frame (`kRingFrames`) ring buffer** in **`4,096`-frame (`kChunkFrames`) chunks** on the main thread using FatFs FastSeek cluster link maps (`CLMT`) and direct LBA sector reads.
    * **Loop Wrap & Direction Support**: Supports forward, backward, and ping-pong looping (`VoiceStreamManager::prepareLoopWrap` pre-fetches the loop boundary before the playhead reaches the wrap point) as well as `R` (Reverse) and `P` (Position) pattern step FX.
    * **Platform Differences (`PLATFORM_IMX` vs. `MK66`)**:
-     * **Tracker+ & Tracker Mini (`PLATFORM_IMX`)**: `isPlayModeStreamable()` returns `true` for **`One-Shot`**, **`Forward Loop`**, **`Backward Loop`**, **`Ping-Pong Loop`**, **`Slice`**, and **`Beat Slice`**, and `false` only for `Wavetable` and `Granular`. For `Slice` and `Beat Slice` instruments, the `32,768`-frame SDRAM pre-cache is partitioned into a `16,384`-frame linear attack region (`[0 .. 16383]`) plus per-slice SDRAM pre-cache windows across the upper `16,384` frames (`VoiceStreamManager::refreshInstrumentSliceCache` / `refreshInstrumentSingleSliceCache`), allowing any slice to start immediately from SDRAM while the `600 MHz` Cortex-M7 refills the voice ring buffer.
+     * **Tracker+ & Tracker Mini (`PLATFORM_IMX`)**: `isPlayModeStreamable()` returns `true` for **`One-Shot`**, **`Forward Loop`**, **`Backward Loop`**, **`Ping-Pong Loop`**, **`Slice`**, and **`Beat Slice`**, and `false` only for `Wavetable` and `Granular`. For `Slice` and `Beat Slice` instruments, the `32,768`-frame SDRAM pre-cache is partitioned into a `16,384`-frame linear attack region (`[0 .. 16383]`) plus per-slice SDRAM pre-cache windows across the upper `16,384` frames (`VoiceStreamManager::refreshInstrumentSliceCache` / `refreshInstrumentSingleSliceCache`), allowing any slice to start immediately from SDRAM while the `528 MHz` Cortex-M7 refills the voice ring buffer.
      * **Original Tracker (`MK66`)**: `isPlayModeStreamable()` returns `true` for **`One-Shot`**, **`Forward Loop`**, **`Backward Loop`**, and **`Ping-Pong Loop`**, and `false` for **`Slice`**, **`Beat Slice`**, **`Wavetable`**, and **`Granular`**. Because partitioning `16,384` frames across `10–48` slices yields smaller per-slice pre-cache windows (`~7.6–37 ms`), and the `180 MHz` Cortex-M4 spends `~20–35 ms` per step on FT812 SPI pattern redraws and Song Mode pattern reads, keeping `Slice` and `Beat Slice` instruments 100% resident in SDRAM on `MK66` guarantees dropout-free multi-track slice playback while non-sliced instruments enjoy the full `743 ms` linear pre-cache.
    * **Automatic Promotion & Demotion (`Sample Editor` & `Play Mode` Switching)**:
      * Entering the Sample Editor (`cSampleEditor`) or switching an instrument to a non-streamable play mode (`!isPlayModeStreamable(newPlayMode)` in `fSamplePlay.cpp`) calls `cFileManager::promoteStreamedInstrumentToRam(idx)`, loading the full PCM payload into `externalRamSampleMemory`.
@@ -131,7 +133,7 @@ Full details in [`docs/modular_effects_system.md`](modular_effects_system.md).
 * **`.ptfx` Code+BSS Limits (`32 KB` on MK66 vs `128 KB` on IMX)**:
   * Both platforms execute `.ptfx` plugin code from the base of `externalRamScratchBuff` (`[0 .. 32 KB]` on Original Tracker `MK66` with the Kinetis System MPU disabled via `MPU_CESR = 0`, and `[0 .. 128 KB]` on Tracker+ / Tracker Mini `IMX` after cleaning L1 D-Cache and invalidating I-Cache in `PtfxLoader::syncInstructionCache()`).
   * Working scratch memory (`scratch_mem`, `640 KB`) occupies `externalRamScratchBuff + 128 KB` (`[128 KB .. 768 KB]`) on both platforms.
-  * Plugins with `code_size + bss_size > 32 KB` (or requiring 600 MHz Cortex-M7 speeds) should declare `PTFX_FLAG_IMX_ONLY`.
+  * Plugins with `code_size + bss_size > 32 KB` (or requiring 528 MHz Cortex-M7 speeds) should declare `PTFX_FLAG_IMX_ONLY`.
 * **SD Card DMA Alignment Pitfall on IMX (`FatFs` + `USDHC`)**:
   * On IMX (`platforms/imx/`), `FatFs` (`f_read`) bypasses its internal aligned DTCM sector buffer whenever a read request is `>= 512` bytes (`cc = btr / 512 > 0`) and passes the caller's destination pointer directly to the USDHC DMA controller.
   * If the destination buffer is not 4-byte aligned or lies in a non-DMA-accessible TCM region, `f_read` fails with `FR_DISK_ERR`. Always use 4-byte aligned buffers in `SRAM_DTC`/`EXTERNAL_RAM`, or read in `<= 256`-byte chunks to force `FatFs` through its internal bounce buffer.
@@ -161,7 +163,7 @@ All three devices share the same `core/` codebase and are differentiated at comp
 
 | Target Scope | Preprocessor Condition | Matching Hardware & Typical Use Case |
 | :--- | :--- | :--- |
-| **IMX Only** (Tracker+ & Mini) | `#ifdef PLATFORM_IMX` | `600 MHz` Cortex-M7, `64 MB` SDRAM, stereo samples (`SAMPLE_CHANNELS == 2`), 16 tracks. |
+| **IMX Only** (Tracker+ & Mini) | `#ifdef PLATFORM_IMX` | `528 MHz` Cortex-M7, `64 MB` SDRAM, stereo samples (`SAMPLE_CHANNELS == 2`), 16 tracks. |
 | **MK66 Only** (Original Tracker) | `#ifndef PLATFORM_IMX` | `180 MHz` Cortex-M4F, `16 MB` SDRAM, mono samples (`SAMPLE_CHANNELS == 1`), 16 tracks. |
 | **Tracker Mini Only** | `#ifdef TRACKER_MINI` | Handheld controls (`interfaceButtonMiniMiddle`, D-pad, battery gauge, internal mic, no pad grid). |
 | **Desktop Form Factor** (Original & Plus) | `#ifndef TRACKER_MINI` | Shared desktop hardware: 48 RGB silicone pads, rotary jog-wheel, FM radio, line/mic inputs. |
@@ -171,7 +173,7 @@ All three devices share the same `core/` codebase and are differentiated at comp
 
 ```cpp
 #if defined(PLATFORM_IMX)
-    // Runs on Tracker+ and Tracker Mini (600 MHz Cortex-M7)
+    // Runs on Tracker+ and Tracker Mini (528 MHz Cortex-M7)
     #if defined(TRACKER_MINI)
         // Tracker Mini only
     #else
